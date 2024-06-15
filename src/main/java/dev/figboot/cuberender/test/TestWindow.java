@@ -13,6 +13,7 @@ public class TestWindow extends JFrame {
         JPanel panel = new JPanel();
         JSlider sliderY = new JSlider();
         JSlider sliderX = new JSlider();
+        JSlider sliderCape = new JSlider();
         GraphicsPanel gp = new GraphicsPanel();
 
         sliderY.setMinimum(-180);
@@ -22,13 +23,19 @@ public class TestWindow extends JFrame {
         sliderX.setMaximum(180);
         sliderX.setOrientation(JSlider.VERTICAL);
 
+        sliderCape.setMinimum(-180);
+        sliderCape.setMaximum(180);
+        sliderCape.setOrientation(JSlider.VERTICAL);
+
         sliderX.setValue(0);
         sliderY.setValue(0);
+        sliderCape.setValue(0);
 
         panel.setLayout(new BorderLayout());
         panel.add(gp, BorderLayout.CENTER);
         panel.add(sliderY, BorderLayout.SOUTH);
         panel.add(sliderX, BorderLayout.EAST);
+        panel.add(sliderCape, BorderLayout.WEST);
 
         setContentPane(panel);
 
@@ -39,6 +46,11 @@ public class TestWindow extends JFrame {
 
         sliderX.addChangeListener(e -> {
             gp.setXRot((float)Math.toRadians(sliderX.getValue()));
+            gp.repaint();
+        });
+
+        sliderCape.addChangeListener(e -> {
+            gp.setCapeRot((float)Math.toRadians(sliderCape.getValue()));
             gp.repaint();
         });
     }

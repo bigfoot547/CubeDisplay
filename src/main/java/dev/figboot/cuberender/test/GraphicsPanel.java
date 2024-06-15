@@ -21,14 +21,16 @@ public class GraphicsPanel extends JPanel {
     private Framebuffer framebuffer;
 
     private final EnumMap<BodyPart, Mesh<?>> meshes = new EnumMap<>(BodyPart.class);
-    private float xRot = 0, yRot = 0;
+    private float xRot = 0, yRot = 0, capeRot = 0;
 
     private long[] clrTime = new long[32];
     private long[] meshTime = new long[32];
     private int tidx = 0;
     boolean rollOver = false;
 
-    private static void addCuboid(Mesh.Builder mb, float x1, float y1, float z1, float x2, float y2, float z2, float tx, float ty, float tspanX, float tspanY, float tspanZ, int ibase) {
+    private Matrix4f defaultTransform, capeTransform;
+
+    private static void addCuboid(Mesh.Builder mb, float x1, float y1, float z1, float x2, float y2, float z2, float tx, float ty, float tspanX, float tspanY, float tspanZ, float aspect, int ibase) {
         mb.vertex(new Vector4f(x1, y1, z2), /* front */
                         new Vector4f(x1, y2, z2),
                         new Vector4f(x2, y2, z2),
@@ -98,9 +100,9 @@ public class GraphicsPanel extends JPanel {
                         new Vector2f(tx, ty + tspanZ),
                         new Vector2f(tx, ty),
                         new Vector2f(tx + tspanX, ty),
-                        new Vector2f(tx + tspanX, ty + tspanZ),
+                        new Vector2f(tx + tspanX, ty + (tspanZ / aspect)),
 
-                        new Vector2f(tx + tspanX, ty + tspanZ),
+                        new Vector2f(tx + tspanX, ty + (tspanZ / aspect)),
                         new Vector2f(tx + tspanX, ty),
                         new Vector2f(tx + 2 * tspanX, ty),
                         new Vector2f(tx + 2 * tspanX, ty + tspanZ))
@@ -139,6 +141,7 @@ public class GraphicsPanel extends JPanel {
         // TODO: this is incomplete. the actual game mirrors the arm (so there is always an "inside" and an "outside")
         copyLimbFlipped(bi.getSubimage(0, 16, 16, 16), realBI.getSubimage(16, 48, 16, 16));
         copyLimbFlipped(bi.getSubimage(40, 16, 16, 16), realBI.getSubimage(32, 48, 16, 16));
+        g2d.dispose();
 
         try {
             ImageIO.write(realBI, "PNG", new File("test.png"));
@@ -163,7 +166,7 @@ public class GraphicsPanel extends JPanel {
         });
 
         BufferedImage bi;
-        try (InputStream is = getClass().getResourceAsStream("/skin2.png")) {
+        try (InputStream is = getClass().getResourceAsStream("/translucent.png")) {
             bi = ImageIO.read(is);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -187,6 +190,7 @@ public class GraphicsPanel extends JPanel {
         // TODO: slim model
         boolean slim = false;
         float overlayOffset = 1/64f;
+        float aspect = tex.calcAspect();
 
         int idxbase = -24;
         // head
@@ -194,38 +198,38 @@ public class GraphicsPanel extends JPanel {
                 -4 / 16f, -16 / 16f, -4 / 16f,
                  4 / 16f,  -8 / 16f,  4 / 16f,
                  1 /  8f,   7 /  8f,
-                 1 /  8f,   1 /  8f,  1 / 8f, idxbase += 24);
+                 1 /  8f,   1 /  8f,  1 / 8f, aspect, idxbase += 24);
 
         // torso
         addCuboid(bodyBuilder,
                 -4 / 16f, -8 / 16f, -2 / 16f,
                  4 / 16f,  4 / 16f,  2 / 16f,
                  5 / 16f, 11 / 16f,
-                 1 / 8f,   3 / 16f,  1 / 16f, idxbase += 24);
+                 1 / 8f,   3 / 16f,  1 / 16f, aspect, idxbase += 24);
 
         // left+right arm
         addCuboid(bodyBuilder,
                 (slim ? -7 : -8) / 16f, -8 / 16f, -2 / 16f,
                 -4 / 16f,  4 / 16f,  2 / 16f,
                 11 / 16f, 11 / 16f,
-                (slim ? 3 / 64f : 1 / 16f),  3 / 16f,  1 / 16f, idxbase += 24);
+                (slim ? 3 / 64f : 1 / 16f),  3 / 16f,  1 / 16f, aspect, idxbase += 24);
         addCuboid(bodyBuilder,
                  4 / 16f, -8 / 16f, -2 / 16f,
                 (slim ? 7 : 8) / 16f,  4 / 16f,  2 / 16f,
                  9 / 16f,  3 / 16f,
-                (slim ? 3 / 64f : 1 / 16f),  3 / 16f,  1 / 16f, idxbase += 24);
+                (slim ? 3 / 64f : 1 / 16f),  3 / 16f,  1 / 16f, aspect, idxbase += 24);
 
         // left+right leg
         addCuboid(bodyBuilder,
                 -4 / 16f,  4 / 16f, -2 / 16f,
                  0 / 16f, 16 / 16f,  2 / 16f,
                  1 / 16f, 11 / 16f,
-                 1 / 16f,  3 / 16f,  1 / 16f, idxbase += 24);
+                 1 / 16f,  3 / 16f,  1 / 16f, aspect, idxbase += 24);
         addCuboid(bodyBuilder,
                  0 / 16f,  4 / 16f, -2 / 16f,
                  4 / 16f, 16 / 16f,  2 / 16f,
                  5 / 16f,  3 / 16f,
-                 1 / 16f,  3 / 16f,  1 / 16f, idxbase += 24);
+                 1 / 16f,  3 / 16f,  1 / 16f, aspect, idxbase += 24);
         meshes.put(BodyPart.MAIN, bodyBuilder.build());
 
         Mesh.Builder hatBuilder = defaultBuilder().texture(tex);
@@ -233,7 +237,7 @@ public class GraphicsPanel extends JPanel {
                 -4 / 16f - overlayOffset, -16 / 16f - overlayOffset, -4 / 16f - overlayOffset,
                  4 / 16f + overlayOffset,  -8 / 16f + overlayOffset,  4 / 16f + overlayOffset,
                  5 /  8f,   7 /  8f,
-                 1 /  8f,   1 /  8f,  1 / 8f, 0);
+                 1 /  8f,   1 /  8f,  1 / 8f, aspect, 0);
 
         meshes.put(BodyPart.HAT, hatBuilder.build());
 
@@ -243,7 +247,7 @@ public class GraphicsPanel extends JPanel {
                 -4 / 16f - overlayOffset, -8 / 16f - overlayOffset, -2 / 16f - overlayOffset,
                  4 / 16f + overlayOffset,  4 / 16f + overlayOffset,  2 / 16f + overlayOffset,
                  5 / 16f,  7 / 16f,
-                 1 / 8f,   3 / 16f,  1 / 16f, 0);
+                 1 / 8f,   3 / 16f,  1 / 16f, aspect, 0);
 
         meshes.put(BodyPart.TORSO_OVERLAY, torsoBuilder.build());
 
@@ -253,7 +257,7 @@ public class GraphicsPanel extends JPanel {
                 (slim ? -7 : -8) / 16f - overlayOffset, -8 / 16f - overlayOffset, -2 / 16f - overlayOffset,
                 -4 / 16f + overlayOffset,  4 / 16f + overlayOffset,  2 / 16f + overlayOffset,
                  13 / 16f, 3 / 16f,
-                (slim ? 3 / 64f : 1 / 16f),  3 / 16f,  1 / 16f, 0);
+                (slim ? 3 / 64f : 1 / 16f),  3 / 16f,  1 / 16f, aspect, 0);
 
         meshes.put(BodyPart.LEFT_ARM_OVERLAY, leftArmBuilder.build());
 
@@ -262,7 +266,7 @@ public class GraphicsPanel extends JPanel {
                  4 / 16f - overlayOffset, -8 / 16f - overlayOffset, -2 / 16f - overlayOffset,
                 (slim ? 7 : 8) / 16f + overlayOffset,  4 / 16f + overlayOffset,  2 / 16f + overlayOffset,
                 11 / 16f,  7 / 16f,
-                (slim ? 3 / 64f : 1 / 16f),  3 / 16f,  1 / 16f, 0);
+                (slim ? 3 / 64f : 1 / 16f),  3 / 16f,  1 / 16f, aspect, 0);
 
         meshes.put(BodyPart.RIGHT_ARM_OVERLAY, rightArmBuilder.build());
 
@@ -272,7 +276,7 @@ public class GraphicsPanel extends JPanel {
                 -4 / 16f - overlayOffset,  4 / 16f - overlayOffset, -2 / 16f - overlayOffset,
                  0 / 16f + overlayOffset, 16 / 16f + overlayOffset,  2 / 16f + overlayOffset,
                  1 / 16f,  7 / 16f,
-                 1 / 16f,  3 / 16f,  1 / 16f, 0);
+                 1 / 16f,  3 / 16f,  1 / 16f, aspect, 0);
         meshes.put(BodyPart.LEFT_LEG_OVERLAY, leftLegBuilder.build());
 
         overlayOffset /= 1.01f;
@@ -281,16 +285,18 @@ public class GraphicsPanel extends JPanel {
                 0 / 16f - overlayOffset,  4 / 16f - overlayOffset, -2 / 16f - overlayOffset,
                 4 / 16f + overlayOffset, 16 / 16f + overlayOffset,  2 / 16f + overlayOffset,
                 1 / 16f,  3 / 16f,
-                1 / 16f,  3 / 16f,  1 / 16f, 0);
+                1 / 16f,  3 / 16f,  1 / 16f, aspect, 0);
         meshes.put(BodyPart.RIGHT_LEG_OVERLAY, rightLegBuilder.build());
 
-        Mesh.Builder capeBuilder = defaultBuilder().texture(new Texture(capeBI));
+        Texture capeTex = new Texture(capeBI);
+
+        Mesh.Builder capeBuilder = defaultBuilder().texture(capeTex);
         addCuboid(capeBuilder,
-                0 / 16f - overlayOffset,  4 / 16f - overlayOffset, -2 / 16f - overlayOffset,
-                4 / 16f + overlayOffset, 16 / 16f + overlayOffset,  2 / 16f + overlayOffset,
-                1 / 16f,  3 / 16f,
-                1 / 16f,  3 / 16f,  1 / 16f, 0);
-        meshes.put(BodyPart.RIGHT_LEG_OVERLAY, rightLegBuilder.build());
+                -4/16f, 0, 0,
+                 4/16f, 16/16f, 1/16f,
+                1/64f, 31/32f,
+                10/64f, 16/32f, 1/64f, capeTex.calcAspect(), 0);
+        meshes.put(BodyPart.CAPE, capeBuilder.build());
     }
 
     private void handleResize(int width, int height) {
@@ -299,7 +305,8 @@ public class GraphicsPanel extends JPanel {
     }
 
     private void updateTransform() {
-        framebuffer.setTransform(Matrix4f.rotateY(yRot).times(Matrix4f.rotateX(xRot)).times(Matrix4f.scale(0.5f)));
+        defaultTransform = Matrix4f.rotateY(yRot).times(Matrix4f.rotateX(xRot)).times(Matrix4f.scale(0.75f));
+        capeTransform = new Matrix4f(defaultTransform).times(Matrix4f.scale(-1, 1, -1)).times(Matrix4f.translate(0, -8/16f, 2/16f)).times(Matrix4f.rotateX(capeRot));
     }
 
     @Override
@@ -310,6 +317,11 @@ public class GraphicsPanel extends JPanel {
         framebuffer.setBlendMode(BlendMode.DISABLE);
         framebuffer.clear(Framebuffer.FB_CLEAR_COLOR | Framebuffer.FB_CLEAR_DEPTH, 0xFF000000);
         long t1 = System.nanoTime();
+
+        framebuffer.setTransform(capeTransform);
+        framebuffer.drawMesh(meshes.get(BodyPart.CAPE));
+
+        framebuffer.setTransform(defaultTransform);
         framebuffer.setDepthMode(Framebuffer.FB_DEPTH_COMMIT | Framebuffer.FB_DEPTH_USE);
         framebuffer.drawMesh(meshes.get(BodyPart.MAIN));
 
@@ -369,6 +381,11 @@ public class GraphicsPanel extends JPanel {
 
     public void setXRot(float rad) {
         this.xRot = rad;
+        updateTransform();
+    }
+
+    public void setCapeRot(float rad) {
+        this.capeRot = rad;
         updateTransform();
     }
 

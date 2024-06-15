@@ -12,9 +12,9 @@ public enum BlendMode {
         float pAlphaFactor = prev.w * (1 - inOutColor.w);
         float aOut = inOutColor.w + pAlphaFactor;
 
-        inOutColor.x = (inOutColor.x + prev.x * pAlphaFactor) / aOut;
-        inOutColor.y = (inOutColor.y + prev.y * pAlphaFactor) / aOut;
-        inOutColor.z = (inOutColor.z + prev.z * pAlphaFactor) / aOut;
+        inOutColor.x = (inOutColor.x * inOutColor.w + prev.x * pAlphaFactor) / aOut;
+        inOutColor.y = (inOutColor.y * inOutColor.w + prev.y * pAlphaFactor) / aOut;
+        inOutColor.z = (inOutColor.z * inOutColor.w + prev.z * pAlphaFactor) / aOut;
         inOutColor.w = aOut;
     });
 

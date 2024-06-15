@@ -11,4 +11,8 @@ public class Texture {
         this.width = image.getWidth();
         this.height = image.getHeight();
     }
+
+    public float calcAspect() {
+        return (float)width / height;
+    }
 }
