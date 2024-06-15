@@ -10,6 +10,10 @@ public class Vector4f {
         this(0, 0, 0, 0);
     }
 
+    public Vector4f(float x, float y, float z) {
+        this(x, y, z, 1f);
+    }
+
     public Vector4f(Vector4f vec) {
         this(vec.x, vec.y, vec.z, vec.w);
     }
@@ -38,10 +42,36 @@ public class Vector4f {
     }
 
     public Vector4f times(float fact, Vector4f target) {
-        target.x *= fact;
-        target.y *= fact;
-        target.z *= fact;
-        target.w *= fact;
+        target.x = x * fact;
+        target.y = y * fact;
+        target.z = z * fact;
+        target.w = w * fact;
+        return target;
+    }
+
+    public float dot(Vector4f that) {
+        return this.x * that.x + this.y * that.y + this.z * that.z + this.w * that.w;
+    }
+
+    public float lengthSquared() {
+        // dot(this, this)
+        return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+    }
+
+    public float length() {
+        return (float)Math.sqrt(lengthSquared());
+    }
+
+    public Vector4f normalize() {
+        return normalize(this);
+    }
+
+    public Vector4f normalize(Vector4f target) {
+        float len = length();
+        target.x = this.x / len;
+        target.y = this.y / len;
+        target.z = this.z / len;
+        target.w = this.w / len;
         return target;
     }
 }

@@ -34,9 +34,9 @@ public class Vector3f {
 
     public Vector3f normalize(Vector3f target) {
         float len = length();
-        target.x /= len;
-        target.y /= len;
-        target.z /= len;
+        target.x = this.x / len;
+        target.y = this.y / len;
+        target.z = this.z / len;
         return target;
     }
 }

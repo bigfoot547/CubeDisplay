@@ -80,7 +80,7 @@ public class Matrix4f {
     }
 
     public Vector4f transform(Vector4f in) {
-        return transform(in, in);
+        return transform(in, new Vector4f());
     }
 
     public Vector4f transform(Vector4f in, Vector4f target) {

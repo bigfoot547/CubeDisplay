@@ -2,7 +2,7 @@ package dev.figboot.cuberender.state;
 
 import dev.figboot.cuberender.math.MathUtil;
 import dev.figboot.cuberender.math.Vector2f;
-import dev.figboot.cuberender.math.Vector3f;
+import dev.figboot.cuberender.math.Vector4f;
 import dev.figboot.cuberender.math.Vector4f;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -11,20 +11,20 @@ import java.util.*;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public abstract class Mesh<T> implements Sampleable<T> {
-    final Vector3f[] vertices;
-    final Vector3f[] normals;
+    final Vector4f[] vertices;
+    final Vector4f[] normals;
     final int[] indices;
 
     final Map<AttachmentType, Object> attachments;
 
-    protected void applyLighting(Vector4f color, Vector3f normal) {
+    protected void applyLighting(Vector4f color, Vector4f normal) {
         Float lightFact = (Float)attachments.get(AttachmentType.LIGHT_FACTOR);
 
         if (lightFact == null) {
             return;
         }
 
-        float fact = 1 - (normal.dot((Vector3f)attachments.get(AttachmentType.LIGHT_VECTOR)) + 1) / 2;
+        float fact = 1 - (normal.dot((Vector4f)attachments.get(AttachmentType.LIGHT_VECTOR)) + 1) / 2;
         fact *= lightFact; // lightFact should kinda set the "black level"
         fact = 1 - fact;
 
@@ -36,8 +36,8 @@ public abstract class Mesh<T> implements Sampleable<T> {
     }
 
     public static class Builder {
-        private final List<Vector3f> vertices = new ArrayList<>();
-        private final List<Vector3f> normals = new ArrayList<>();
+        private final List<Vector4f> vertices = new ArrayList<>();
+        private final List<Vector4f> normals = new ArrayList<>();
         private final List<Integer> indices = new ArrayList<>();
         private final List<Vector2f> texCoords = new ArrayList<>();
         private int color;
@@ -65,12 +65,12 @@ public abstract class Mesh<T> implements Sampleable<T> {
             return this;
         }
 
-        public Builder vertex(Vector3f... vert) {
+        public Builder vertex(Vector4f... vert) {
             vertices.addAll(Arrays.asList(vert));
             return this;
         }
 
-        public Builder normals(Vector3f... norm) {
+        public Builder normals(Vector4f... norm) {
             normals.addAll(Arrays.asList(norm));
             return this;
         }
@@ -99,9 +99,9 @@ public abstract class Mesh<T> implements Sampleable<T> {
             }
 
             if (texture == null) {
-                return new ColorMesh(vertices.toArray(new Vector3f[0]), normals.toArray(new Vector3f[0]), idxArr, attachments, color);
+                return new ColorMesh(vertices.toArray(new Vector4f[0]), normals.toArray(new Vector4f[0]), idxArr, attachments, color);
             } else {
-                return new TextureMesh(vertices.toArray(new Vector3f[0]), normals.toArray(new Vector3f[0]), idxArr, attachments, texture, texCoords.toArray(new Vector2f[0]));
+                return new TextureMesh(vertices.toArray(new Vector4f[0]), normals.toArray(new Vector4f[0]), idxArr, attachments, texture, texCoords.toArray(new Vector2f[0]));
             }
         }
     }
@@ -109,7 +109,7 @@ public abstract class Mesh<T> implements Sampleable<T> {
     private static class ColorMesh extends Mesh<Void> {
         int color;
 
-        ColorMesh(Vector3f[] vertices, Vector3f[] normals, int[] indices, Map<AttachmentType, Object> attachments, int color) {
+        ColorMesh(Vector4f[] vertices, Vector4f[] normals, int[] indices, Map<AttachmentType, Object> attachments, int color) {
             super(vertices, normals, indices, attachments);
             this.color = color;
         }
@@ -120,7 +120,7 @@ public abstract class Mesh<T> implements Sampleable<T> {
         }
 
         @Override
-        public void sample(float b0, float b1, float b2, Vector3f normal, Void u1, Void u2, Void u3, Vector4f outColor) {
+        public void sample(float b0, float b1, float b2, Vector4f normal, Void u1, Void u2, Void u3, Vector4f outColor) {
             applyLighting(outColor.fromARGB(color), normal);
         }
     }
@@ -129,7 +129,7 @@ public abstract class Mesh<T> implements Sampleable<T> {
         Texture texture;
         Vector2f[] texCoords;
 
-        TextureMesh(Vector3f[] vertices, Vector3f[] normals, int[] indices, Map<AttachmentType, Object> attachments, Texture tex, Vector2f[] texCoords) {
+        TextureMesh(Vector4f[] vertices, Vector4f[] normals, int[] indices, Map<AttachmentType, Object> attachments, Texture tex, Vector2f[] texCoords) {
             super(vertices, normals, indices, attachments);
             this.texture = tex;
             this.texCoords = texCoords;
@@ -141,7 +141,7 @@ public abstract class Mesh<T> implements Sampleable<T> {
         }
 
         @Override
-        public void sample(float b0, float b1, float b2, Vector3f normal, Vector2f tc1, Vector2f tc2, Vector2f tc3, Vector4f color) {
+        public void sample(float b0, float b1, float b2, Vector4f normal, Vector2f tc1, Vector2f tc2, Vector2f tc3, Vector4f color) {
             float texX = b0 * tc1.x + b1 * tc2.x + b2 * tc3.x;
             float texY = b0 * tc1.y + b1 * tc2.y + b2 * tc3.y;
 
@@ -154,6 +154,6 @@ public abstract class Mesh<T> implements Sampleable<T> {
 
     public enum AttachmentType {
         LIGHT_FACTOR, // float
-        LIGHT_VECTOR  // Vector3f
+        LIGHT_VECTOR  // Vector4f
     }
 }

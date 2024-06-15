@@ -1,6 +1,7 @@
 package dev.figboot.cuberender.state;
 
 import dev.figboot.cuberender.math.Matrix3f;
+import dev.figboot.cuberender.math.Matrix4f;
 import dev.figboot.cuberender.math.Vector3f;
 import dev.figboot.cuberender.math.Vector4f;
 import lombok.Getter;
@@ -23,9 +24,9 @@ public class Framebuffer {
     @Getter private final BufferedImage color;
     private final float[] depth;
 
-    private int depthMode = FB_DEPTH_USE | FB_DEPTH_COMMIT;
+    @Setter private int depthMode = FB_DEPTH_USE | FB_DEPTH_COMMIT;
 
-    @Setter private Matrix3f transform;
+    @Setter private Matrix4f transform;
 
     @Setter private BlendMode blendMode = BlendMode.DISABLE;
 
@@ -35,10 +36,6 @@ public class Framebuffer {
 
         this.color = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         depth = new float[width * height];
-    }
-
-    public void setDepthMode(int mode) {
-        this.depthMode = mode;
     }
 
     public void clear(int bits, int color) {
@@ -74,9 +71,9 @@ public class Framebuffer {
             i1 = mesh.indices[tri * 3 + 1];
             i2 = mesh.indices[tri * 3 + 2];
 
-            Vector3f vert0 = mesh.vertices[i0];
-            Vector3f vert1 = mesh.vertices[i1];
-            Vector3f vert2 = mesh.vertices[i2];
+            Vector4f vert0 = mesh.vertices[i0];
+            Vector4f vert1 = mesh.vertices[i1];
+            Vector4f vert2 = mesh.vertices[i2];
 
             drawTriangle(vert0, vert1, vert2, mesh.normals[tri], s, i0, i1, i2);
         }
@@ -94,9 +91,9 @@ public class Framebuffer {
             i1 = tri * 3 + 1;
             i2 = tri * 3 + 2;
 
-            Vector3f vert0 = mesh.vertices[i0];
-            Vector3f vert1 = mesh.vertices[i1];
-            Vector3f vert2 = mesh.vertices[i2];
+            Vector4f vert0 = mesh.vertices[i0];
+            Vector4f vert1 = mesh.vertices[i1];
+            Vector4f vert2 = mesh.vertices[i2];
 
             drawTriangle(vert0, vert1, vert2, mesh.normals[tri], s, i0, i1, i2);
         }
@@ -111,7 +108,7 @@ public class Framebuffer {
     }
 
     // triangles have flat normals (we don't need anything more than that in this renderer and it saves us the trouble of interpolating between 3 normal vectors)
-    private void drawTriangle(Vector3f vert0, Vector3f vert1, Vector3f vert2, Vector3f normal, Sampleable<Object> sampleable, int i0, int i1, int i2) {
+    private void drawTriangle(Vector4f vert0, Vector4f vert1, Vector4f vert2, Vector4f normal, Sampleable<Object> sampleable, int i0, int i1, int i2) {
         Vector4f outColor = new Vector4f(), prevColor = new Vector4f();
 
         vert0 = transform.transform(vert0);

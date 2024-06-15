@@ -1,8 +1,6 @@
 package dev.figboot.cuberender.test;
 
-import dev.figboot.cuberender.math.Matrix3f;
-import dev.figboot.cuberender.math.Vector2f;
-import dev.figboot.cuberender.math.Vector3f;
+import dev.figboot.cuberender.math.*;
 import dev.figboot.cuberender.state.BlendMode;
 import dev.figboot.cuberender.state.Framebuffer;
 import dev.figboot.cuberender.state.Mesh;
@@ -31,52 +29,52 @@ public class GraphicsPanel extends JPanel {
     boolean rollOver = false;
 
     private static void addCuboid(Mesh.Builder mb, float x1, float y1, float z1, float x2, float y2, float z2, float tx, float ty, float tspanX, float tspanY, float tspanZ, int ibase) {
-        mb.vertex(new Vector3f(x1, y1, z2), /* front */
-                        new Vector3f(x1, y2, z2),
-                        new Vector3f(x2, y2, z2),
-                        new Vector3f(x2, y1, z2),
+        mb.vertex(new Vector4f(x1, y1, z2), /* front */
+                        new Vector4f(x1, y2, z2),
+                        new Vector4f(x2, y2, z2),
+                        new Vector4f(x2, y1, z2),
 
-                        new Vector3f(x2, y1, z2), /* +X side */
-                        new Vector3f(x2, y2, z2),
-                        new Vector3f(x2, y2, z1),
-                        new Vector3f(x2, y1, z1),
+                        new Vector4f(x2, y1, z2), /* +X side */
+                        new Vector4f(x2, y2, z2),
+                        new Vector4f(x2, y2, z1),
+                        new Vector4f(x2, y1, z1),
 
-                        new Vector3f(x2, y1, z1), /* back */
-                        new Vector3f(x2, y2, z1),
-                        new Vector3f(x1, y2, z1),
-                        new Vector3f(x1, y1, z1),
+                        new Vector4f(x2, y1, z1), /* back */
+                        new Vector4f(x2, y2, z1),
+                        new Vector4f(x1, y2, z1),
+                        new Vector4f(x1, y1, z1),
 
-                        new Vector3f(x1, y1, z1), /* -X side */
-                        new Vector3f(x1, y2, z1),
-                        new Vector3f(x1, y2, z2),
-                        new Vector3f(x1, y1, z2),
+                        new Vector4f(x1, y1, z1), /* -X side */
+                        new Vector4f(x1, y2, z1),
+                        new Vector4f(x1, y2, z2),
+                        new Vector4f(x1, y1, z2),
 
-                        new Vector3f(x1, y1, z1), /* top */
-                        new Vector3f(x1, y1, z2),
-                        new Vector3f(x2, y1, z2),
-                        new Vector3f(x2, y1, z1),
+                        new Vector4f(x1, y1, z1), /* top */
+                        new Vector4f(x1, y1, z2),
+                        new Vector4f(x2, y1, z2),
+                        new Vector4f(x2, y1, z1),
 
-                        new Vector3f(x1, y2, z1), /* bottom */
-                        new Vector3f(x1, y2, z2),
-                        new Vector3f(x2, y2, z2),
-                        new Vector3f(x2, y2, z1))
-                .normals(new Vector3f(0, 0, 1),
-                        new Vector3f(0, 0, 1),
+                        new Vector4f(x1, y2, z1), /* bottom */
+                        new Vector4f(x1, y2, z2),
+                        new Vector4f(x2, y2, z2),
+                        new Vector4f(x2, y2, z1))
+                .normals(new Vector4f(0, 0, 1, 0),
+                        new Vector4f(0, 0, 1, 0),
 
-                        new Vector3f(1, 0, 0),
-                        new Vector3f(1, 0, 0),
+                        new Vector4f(1, 0, 0, 0),
+                        new Vector4f(1, 0, 0, 0),
 
-                        new Vector3f(0, 0, -1),
-                        new Vector3f(0, 0, -1),
+                        new Vector4f(0, 0, -1, 0),
+                        new Vector4f(0, 0, -1, 0),
 
-                        new Vector3f(-1, 0, 0),
-                        new Vector3f(-1, 0, 0),
+                        new Vector4f(-1, 0, 0, 0),
+                        new Vector4f(-1, 0, 0, 0),
 
-                        new Vector3f(0, -1, 0),
-                        new Vector3f(0, -1, 0),
+                        new Vector4f(0, -1, 0, 0),
+                        new Vector4f(0, -1, 0, 0),
 
-                        new Vector3f(0, 1, 0),
-                        new Vector3f(0, 1, 0))
+                        new Vector4f(0, 1, 0, 0),
+                        new Vector4f(0, 1, 0, 0))
                 .texCoords(new Vector2f(tx, ty),
                         new Vector2f(tx, ty - tspanY),
                         new Vector2f(tx + tspanX, ty - tspanY),
@@ -153,7 +151,7 @@ public class GraphicsPanel extends JPanel {
 
     private static Mesh.Builder defaultBuilder() {
         return new Mesh.Builder().attach(Mesh.AttachmentType.LIGHT_FACTOR, 1f)
-                .attach(Mesh.AttachmentType.LIGHT_VECTOR, new Vector3f(0, 0, 1));
+                .attach(Mesh.AttachmentType.LIGHT_VECTOR, new Vector4f(0, 0, 1, 0));
     }
 
     public GraphicsPanel() {
@@ -301,7 +299,7 @@ public class GraphicsPanel extends JPanel {
     }
 
     private void updateTransform() {
-        framebuffer.setTransform(Matrix3f.rotateY(yRot).times(Matrix3f.rotateX(xRot)).times(Matrix3f.scaleX(0.5f).times(Matrix3f.scaleY(0.5f).times(Matrix3f.scaleZ(0.5f)))));
+        framebuffer.setTransform(Matrix4f.rotateY(yRot).times(Matrix4f.rotateX(xRot)).times(Matrix4f.scale(0.5f)));
     }
 
     @Override
