@@ -1,6 +1,5 @@
 package dev.figboot.cuberender.state;
 
-import dev.figboot.cuberender.math.Vector3f;
 import dev.figboot.cuberender.math.Vector4f;
 
 public interface Sampleable<T> {

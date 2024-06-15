@@ -1,8 +1,6 @@
 package dev.figboot.cuberender.state;
 
-import dev.figboot.cuberender.math.Matrix3f;
 import dev.figboot.cuberender.math.Matrix4f;
-import dev.figboot.cuberender.math.Vector3f;
 import dev.figboot.cuberender.math.Vector4f;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,12 +10,12 @@ import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
 public class Framebuffer {
-    public static int FB_CLEAR_COLOR = 0x01;
-    public static int FB_CLEAR_DEPTH = 0x02;
+    public static final int FB_CLEAR_COLOR = 0x01;
+    public static final int FB_CLEAR_DEPTH = 0x02;
 
-    public static int FB_DEPTH_USE = 0x01;
-    public static int FB_DEPTH_COMMIT = 0x02;
-    public static int FB_DEPTH_COMMIT_TRANSPARENT = 0x04;
+    public static final int FB_DEPTH_USE = 0x01;
+    public static final int FB_DEPTH_COMMIT = 0x02;
+    public static final int FB_DEPTH_COMMIT_TRANSPARENT = 0x04;
 
     @Getter private final int width, height;
 

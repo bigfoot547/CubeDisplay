@@ -3,7 +3,6 @@ package dev.figboot.cuberender.state;
 import dev.figboot.cuberender.math.MathUtil;
 import dev.figboot.cuberender.math.Vector2f;
 import dev.figboot.cuberender.math.Vector4f;
-import dev.figboot.cuberender.math.Vector4f;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
@@ -107,7 +106,7 @@ public abstract class Mesh<T> implements Sampleable<T> {
     }
 
     private static class ColorMesh extends Mesh<Void> {
-        int color;
+        final int color;
 
         ColorMesh(Vector4f[] vertices, Vector4f[] normals, int[] indices, Map<AttachmentType, Object> attachments, int color) {
             super(vertices, normals, indices, attachments);
@@ -126,8 +125,8 @@ public abstract class Mesh<T> implements Sampleable<T> {
     }
 
     private static class TextureMesh extends Mesh<Vector2f> {
-        Texture texture;
-        Vector2f[] texCoords;
+        final Texture texture;
+        final Vector2f[] texCoords;
 
         TextureMesh(Vector4f[] vertices, Vector4f[] normals, int[] indices, Map<AttachmentType, Object> attachments, Texture tex, Vector2f[] texCoords) {
             super(vertices, normals, indices, attachments);

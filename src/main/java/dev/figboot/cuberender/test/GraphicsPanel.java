@@ -23,8 +23,8 @@ public class GraphicsPanel extends JPanel {
     private final EnumMap<BodyPart, Mesh<?>> meshes = new EnumMap<>(BodyPart.class);
     private float xRot = 0, yRot = 0, capeRot = 0;
 
-    private long[] clrTime = new long[32];
-    private long[] meshTime = new long[32];
+    private final long[] clrTime = new long[32];
+    private final long[] meshTime = new long[32];
     private int tidx = 0;
     boolean rollOver = false;
 

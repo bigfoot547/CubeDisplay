@@ -4,7 +4,8 @@ import java.awt.image.BufferedImage;
 
 public class Texture {
     public final BufferedImage image;
-    public transient int width, height;
+    public final transient int width;
+    public final transient int height;
 
     public Texture(BufferedImage image) {
         this.image = image;
