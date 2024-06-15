@@ -27,6 +27,7 @@ public class Framebuffer {
     @Setter private Matrix4f transform;
 
     @Setter private BlendMode blendMode = BlendMode.DISABLE;
+    @Setter private boolean cullBackFace = true;
 
     public Framebuffer(int width, int height) {
         this.width = width;
@@ -113,6 +114,10 @@ public class Framebuffer {
         vert1 = transform.transform(vert1);
         vert2 = transform.transform(vert2);
         normal = transform.transform(normal).normalize();
+
+        if (cullBackFace && normal.z < 0) {
+            return;
+        }
 
         float sx0 = logToScrX(vert0.x), sy0 = logToScrY(vert0.y);
         float sx1 = logToScrX(vert1.x), sy1 = logToScrY(vert1.y);

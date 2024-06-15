@@ -315,6 +315,7 @@ public class GraphicsPanel extends JPanel {
 
         long start = System.nanoTime();
         framebuffer.setBlendMode(BlendMode.DISABLE);
+        framebuffer.setCullBackFace(true);
         framebuffer.clear(Framebuffer.FB_CLEAR_COLOR | Framebuffer.FB_CLEAR_DEPTH, 0xFF000000);
         long t1 = System.nanoTime();
 
@@ -327,6 +328,7 @@ public class GraphicsPanel extends JPanel {
 
         framebuffer.setDepthMode(Framebuffer.FB_DEPTH_USE | Framebuffer.FB_DEPTH_COMMIT_TRANSPARENT);
         framebuffer.setBlendMode(BlendMode.BLEND_OVER);
+        framebuffer.setCullBackFace(false);
         framebuffer.drawMesh(meshes.get(BodyPart.HAT));
         framebuffer.drawMesh(meshes.get(BodyPart.TORSO_OVERLAY));
         framebuffer.drawMesh(meshes.get(BodyPart.LEFT_ARM_OVERLAY));
