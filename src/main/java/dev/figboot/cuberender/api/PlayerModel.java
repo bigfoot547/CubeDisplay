@@ -79,7 +79,7 @@ public class PlayerModel {
     private float worldRotY;
     private float worldRotX;
     private float headPitch;
-    private float worldScale;
+    private float worldScaleX, worldScaleY, worldScaleZ;
 
     private boolean transformAngleDirty;
 
@@ -106,7 +106,8 @@ public class PlayerModel {
         worldRotY = 0.0f;
         worldRotX = 0.0f;
         headPitch = 0.0f;
-        worldScale = 0.75f;
+
+        setWorldScale(0.75f);
 
         Texture tex = new Texture(skinTexture);
 
@@ -249,12 +250,24 @@ public class PlayerModel {
     }
 
     /**
-     * Sets the world scale.
+     * Sets the world scale. This is equivalent to {@code setWorldScale(scale, scale, scale)}.
      * @param scale the world scale (default is 0.75)
      * @see PlayerModel#updateTransforms()
      */
     public void setWorldScale(float scale) {
-        this.worldScale = scale;
+        setWorldScale(scale, scale, scale);
+    }
+
+    /**
+     * Sets the world scale on each axis.
+     * @param scaleX the world scale along the X axis (left to right)
+     * @param scaleY the world scale along the Y axis (top to bottom)
+     * @param scaleZ the world scale along the Z axis (towards the viewer)
+     */
+    public void setWorldScale(float scaleX, float scaleY, float scaleZ) {
+        this.worldScaleX = scaleX;
+        this.worldScaleY = scaleY;
+        this.worldScaleZ = scaleZ;
         transformAngleDirty = true;
     }
 
@@ -285,7 +298,7 @@ public class PlayerModel {
 
         transforms.put(BodyPart.CAPE, calculateTransform(BodyPart.CAPE, capeAngle, 0));
 
-        Matrix4f worldTransform = Matrix4f.scale(worldScale).times(Matrix4f.rotateX(worldRotX)).times(Matrix4f.rotateY(worldRotY));
+        Matrix4f worldTransform = Matrix4f.scale(worldScaleX, worldScaleY, worldScaleZ).times(Matrix4f.rotateX(worldRotX)).times(Matrix4f.rotateY(worldRotY));
         for (BodyPart part : BodyPart.values()) {
             transforms.put(part, worldTransform.times(transforms.get(part), new Matrix4f()));
         }

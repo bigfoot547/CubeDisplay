@@ -6,7 +6,7 @@ class TestWindow extends JFrame {
     public TestWindow() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Graphics test");
-        setSize(300, 300);
+        setSize(200, 300);
         setLocationRelativeTo(null);
 
         GraphicsPanel gp = new GraphicsPanel();

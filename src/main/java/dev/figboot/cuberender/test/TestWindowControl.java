@@ -9,6 +9,8 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -141,6 +143,16 @@ class TestWindowControl extends JFrame {
         pack();
         setResizable(false);
         setLocationRelativeTo(null);
+
+        graphicsPanel.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                float aspect = (float)graphicsPanel.getWidth() / graphicsPanel.getHeight();
+                graphicsPanel.getModel().setWorldScale(0.75f / aspect, 0.75f, 0.75f);
+                graphicsPanel.getModel().updateTransforms();
+                graphicsPanel.repaint();
+            }
+        });
 
         updateGraphics(true, true);
     }
