@@ -121,6 +121,7 @@ public class PlayerModel {
         if (capeTexture == null) {
             capeEnabled = false;
         } else {
+            capeEnabled = true;
             meshes.put(BodyPart.CAPE, BodyPart.CAPE.toBuilder(new Texture(capeTexture), 0)
                     .attach(Mesh.AttachmentType.LIGHT_FACTOR, 1f)
                     .attach(Mesh.AttachmentType.LIGHT_VECTOR, new Vector4f(0, 0, 1, 0)).build());
@@ -286,7 +287,7 @@ public class PlayerModel {
 
         Matrix4f worldTransform = Matrix4f.scale(worldScale).times(Matrix4f.rotateX(worldRotX)).times(Matrix4f.rotateY(worldRotY));
         for (BodyPart part : BodyPart.values()) {
-            transforms.put(part, worldTransform.times(transforms.get(part)));
+            transforms.put(part, worldTransform.times(transforms.get(part), new Matrix4f()));
         }
 
         transformAngleDirty = false;
@@ -333,6 +334,7 @@ public class PlayerModel {
 
         if ((renderOverlayFlags & OVERLAY_CAPE) != 0) {
             fb.setTransform(transforms.get(BodyPart.CAPE));
+            fb.drawMesh(meshes.get(BodyPart.CAPE));
         }
 
         fb.setDepthMode(Framebuffer.FB_DEPTH_COMMIT | Framebuffer.FB_DEPTH_USE);
@@ -388,6 +390,7 @@ public class PlayerModel {
         private static final float CAPE_OFFSET = -2 * PLANE_FIGHT_OFFSET;
 
         // for overlay parts
+        @SuppressWarnings("unused")
         BodyPart(float spanX, float spanY, float spanZ, float texBaseX, float texBaseY, int planeFightOffset, boolean overlay) {
             this(spanX + (planeFightOffset * PLANE_FIGHT_OFFSET) + OVERLAY_OFFSET,
                     spanY + (planeFightOffset * PLANE_FIGHT_OFFSET) + OVERLAY_OFFSET,

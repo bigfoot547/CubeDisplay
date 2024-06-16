@@ -1,5 +1,6 @@
 package dev.figboot.cuberender.test;
 
+import dev.figboot.cuberender.api.PlayerModel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -145,16 +146,18 @@ class TestWindowControl extends JFrame {
     }
 
     private void updateGraphics(boolean slider, boolean overlay) {
-        graphicsPanel.setTranslucentModel(radOverlayTranslucent.isSelected());
-        graphicsPanel.setNormalModel(radModelNormal.isSelected());
+        PlayerModel model = graphicsPanel.getModel();
+
+        model.setTranslucentModel(radOverlayTranslucent.isSelected());
+        model.setNormalModel(radModelNormal.isSelected());
 
         if (slider) {
-            graphicsPanel.setWalkAngle((float)Math.toRadians(sldWalkAngle.getValue()));
-            graphicsPanel.setCapeAngle((float)Math.toRadians(sldCapeAngle.getValue()));
-            graphicsPanel.setWorldRotY((float)Math.toRadians(sldYRot.getValue()));
-            graphicsPanel.setWorldRotX((float)Math.toRadians(sldXRot.getValue()));
-            graphicsPanel.setHeadPitch((float)Math.toRadians(sldHeadPitch.getValue()));
-            graphicsPanel.updateTransform();
+            model.setWalkAngle((float)Math.toRadians(sldWalkAngle.getValue()));
+            model.setCapeAngle((float)Math.toRadians(sldCapeAngle.getValue()));
+            model.setWorldRotY((float)Math.toRadians(sldYRot.getValue()));
+            model.setWorldRotX((float)Math.toRadians(sldXRot.getValue()));
+            model.setHeadPitch((float)Math.toRadians(sldHeadPitch.getValue()));
+            model.updateTransforms();
         }
 
         if (overlay) {
@@ -165,7 +168,7 @@ class TestWindowControl extends JFrame {
                 }
             }
 
-            graphicsPanel.setRenderOverlayFlags(flags);
+            model.setRenderOverlayFlags(flags);
         }
     }
 
@@ -190,13 +193,13 @@ class TestWindowControl extends JFrame {
     @RequiredArgsConstructor
     @Getter
     private enum OverlayPart {
-        HAT("Hat", GraphicsPanel.OVERLAY_HAT),
-        TORSO("Torso overlay", GraphicsPanel.OVERLAY_TORSO),
-        LEFT_ARM("Left arm overlay", GraphicsPanel.OVERLAY_LEFT_ARM),
-        RIGHT_ARM("Right arm overlay", GraphicsPanel.OVERLAY_RIGHT_ARM),
-        LEFT_LEG("Left leg overlay", GraphicsPanel.OVERLAY_LEFT_LEG),
-        RIGHT_LEG("Right leg overlay", GraphicsPanel.OVERLAY_RIGHT_LEG),
-        CAPE("Cape", GraphicsPanel.OVERLAY_CAPE);
+        HAT("Hat", PlayerModel.OVERLAY_HAT),
+        TORSO("Torso overlay", PlayerModel.OVERLAY_TORSO),
+        LEFT_ARM("Left arm overlay", PlayerModel.OVERLAY_LEFT_ARM),
+        RIGHT_ARM("Right arm overlay", PlayerModel.OVERLAY_RIGHT_ARM),
+        LEFT_LEG("Left leg overlay", PlayerModel.OVERLAY_LEFT_LEG),
+        RIGHT_LEG("Right leg overlay", PlayerModel.OVERLAY_RIGHT_LEG),
+        CAPE("Cape", PlayerModel.OVERLAY_CAPE);
 
         private final String name;
         private final int flag;
