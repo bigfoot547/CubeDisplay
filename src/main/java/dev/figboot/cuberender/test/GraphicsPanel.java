@@ -100,7 +100,7 @@ public class GraphicsPanel extends JPanel {
         });
 
         BufferedImage bi;
-        try (InputStream is = getClass().getResourceAsStream("/skin2.png")) {
+        try (InputStream is = getClass().getResourceAsStream("/skinSlim.png")) {
             bi = ImageIO.read(is);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -317,16 +317,16 @@ public class GraphicsPanel extends JPanel {
         RIGHT_ARM(4/16f, 12/16f, 4/16f, 36/64f, 12/64f),
         LEFT_ARM_SLIM(3/16f, 12/16f, 4/16f, 44/64f, 44/64f),
         RIGHT_ARM_SLIM(3/16f, 12/16f, 4/16f, 36/64f, 12/64f),
-        LEFT_LEG(4/16f, 12/16f, 4/16f, 4/64f, 44/64f),
-        RIGHT_LEG(4/16f, 12/16f, 4/16f, 20/64f, 12/64f),
-        HAT(8/16f, 8/16f, 8/16f, 40/64f, 56/64f, 0),
-        TORSO_OVERLAY(8/16f, 12/16f, 4/16f, 20/64f, 28/64f, 2),
-        LEFT_ARM_OVERLAY(4/16f, 12/16f, 4/16f, 52/64f, 12/64f, 0),
-        LEFT_ARM_OVERLAY_SLIM(3/16f, 12/16f, 4/16f, 52/64f, 12/64f, 0),
-        RIGHT_ARM_OVERLAY(4/16f, 12/16f, 4/16f, 44/64f, 28/64f, 0),
-        RIGHT_ARM_OVERLAY_SLIM(3/16f, 12/16f, 4/16f, 44/64f, 28/64f, 0),
-        LEFT_LEG_OVERLAY(4/16f, 12/16f, 4/16f, 4/64f, 28/64f, 0),
-        RIGHT_LEG_OVERLAY(4/16f, 12/16f, 4/16f, 4/64f, 12/64f, 1),
+        LEFT_LEG(4/16f, 12/16f, 4/16f, 4/64f, 44/64f, -1),
+        RIGHT_LEG(4/16f, 12/16f, 4/16f, 20/64f, 12/64f, -1),
+        HAT(8/16f, 8/16f, 8/16f, 40/64f, 56/64f, 0, true),
+        TORSO_OVERLAY(8/16f, 12/16f, 4/16f, 20/64f, 28/64f, 2, true),
+        LEFT_ARM_OVERLAY(4/16f, 12/16f, 4/16f, 52/64f, 12/64f, 0, true),
+        LEFT_ARM_OVERLAY_SLIM(3/16f, 12/16f, 4/16f, 52/64f, 12/64f, 0, true),
+        RIGHT_ARM_OVERLAY(4/16f, 12/16f, 4/16f, 44/64f, 28/64f, 0, true),
+        RIGHT_ARM_OVERLAY_SLIM(3/16f, 12/16f, 4/16f, 44/64f, 28/64f, 0, true),
+        LEFT_LEG_OVERLAY(4/16f, 12/16f, 4/16f, 4/64f, 28/64f, 0, true),
+        RIGHT_LEG_OVERLAY(4/16f, 12/16f, 4/16f, 4/64f, 12/64f, 1, true),
         CAPE(8/16f, 16/16f, 1/16f, 1/64f, 31/32f, 10/64f, 16/32f, 1/64f, true);
 
         private final float xMin, yMin, zMin;
@@ -335,13 +335,22 @@ public class GraphicsPanel extends JPanel {
         private final float texSpanX, texSpanY, texSpanZ;
 
         private static final float OVERLAY_OFFSET = 2f/64;
-        private static final float CAPE_OFFSET = -0.001f;
+        private static final float PLANE_FIGHT_OFFSET = 0.001f;
+        private static final float CAPE_OFFSET = -2 * PLANE_FIGHT_OFFSET;
 
         // for overlay parts
+        BodyPart(float spanX, float spanY, float spanZ, float texBaseX, float texBaseY, int planeFightOffset, boolean overlay) {
+            this(spanX + (planeFightOffset * PLANE_FIGHT_OFFSET) + OVERLAY_OFFSET,
+                    spanY + (planeFightOffset * PLANE_FIGHT_OFFSET) + OVERLAY_OFFSET,
+                    spanZ + (planeFightOffset * PLANE_FIGHT_OFFSET) + OVERLAY_OFFSET,
+                    texBaseX, texBaseY, spanX / 4, spanY / 4, spanZ / 4);
+        }
+
+        // for legs (they visibly plane-fight with torso)
         BodyPart(float spanX, float spanY, float spanZ, float texBaseX, float texBaseY, int planeFightOffset) {
-            this(spanX + (planeFightOffset * 0.001f) + OVERLAY_OFFSET,
-                    spanY + (planeFightOffset * 0.001f) + OVERLAY_OFFSET,
-                    spanZ + (planeFightOffset * 0.001f) + OVERLAY_OFFSET,
+            this(spanX + (planeFightOffset * PLANE_FIGHT_OFFSET),
+                    spanY + (planeFightOffset * PLANE_FIGHT_OFFSET),
+                    spanZ + (planeFightOffset * PLANE_FIGHT_OFFSET),
                     texBaseX, texBaseY, spanX / 4, spanY / 4, spanZ / 4);
         }
 
