@@ -74,4 +74,11 @@ public class Vector4f {
         target.w = this.w / len;
         return target;
     }
+
+    public void copyFrom(Vector4f src) {
+        x = src.x;
+        y = src.y;
+        z = src.z;
+        w = src.w;
+    }
 }

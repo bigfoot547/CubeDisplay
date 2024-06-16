@@ -8,6 +8,13 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum BlendMode {
     DISABLE((inOutColor, prev) -> inOutColor.w = 1),
+    BINARY((inOutColor, prev) -> {
+        if (inOutColor.w < 0.5) {
+            inOutColor.copyFrom(prev);
+        } else {
+            inOutColor.w = 1;
+        }
+    }),
     BLEND_OVER((inOutColor, prev) -> {
         float pAlphaFactor = prev.w * (1 - inOutColor.w);
         float aOut = inOutColor.w + pAlphaFactor;
