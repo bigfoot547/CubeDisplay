@@ -2,7 +2,7 @@ package dev.figboot.cuberender.test;
 
 import javax.swing.*;
 
-public class TestWindow extends JFrame {
+class TestWindow extends JFrame {
     public TestWindow() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Graphics test");

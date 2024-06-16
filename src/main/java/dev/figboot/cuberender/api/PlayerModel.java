@@ -1,7 +1,8 @@
-package dev.figboot.cuberender.test;
+package dev.figboot.cuberender.api;
 
-import dev.figboot.cuberender.api.SkinUtil;
-import dev.figboot.cuberender.math.*;
+import dev.figboot.cuberender.math.Matrix4f;
+import dev.figboot.cuberender.math.Vector2f;
+import dev.figboot.cuberender.math.Vector4f;
 import dev.figboot.cuberender.state.BlendMode;
 import dev.figboot.cuberender.state.Framebuffer;
 import dev.figboot.cuberender.state.Mesh;
@@ -9,41 +10,53 @@ import dev.figboot.cuberender.state.Texture;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.EnumMap;
 
-class GraphicsPanel extends JPanel {
-    private Framebuffer framebuffer;
-
-    private final EnumMap<BodyPart, Mesh<?>> meshes = new EnumMap<>(BodyPart.class);
-
-    @Setter private boolean translucentModel = true, normalModel = true;
-    @Setter private float walkAngle, capeAngle, worldRotY, worldRotX, headPitch;
-
+/**
+ * Represents a player model that can be rendered onto a Framebuffer.
+ */
+public class PlayerModel {
+    /**
+     * Head overlay (hat)
+     */
     public static final int OVERLAY_HAT = 0x0001;
+
+    /**
+     * Torso overlay
+     */
     public static final int OVERLAY_TORSO = 0x0002;
+
+    /**
+     * Left arm overlay
+     */
     public static final int OVERLAY_LEFT_ARM = 0x0004;
+
+    /**
+     * Right arm overlay
+     */
     public static final int OVERLAY_RIGHT_ARM = 0x0008;
+
+    /**
+     * Left leg overlay
+     */
     public static final int OVERLAY_LEFT_LEG = 0x0010;
+
+    /**
+     * Right leg overlay
+     */
     public static final int OVERLAY_RIGHT_LEG = 0x0020;
 
+    /**
+     * Cape overlay
+     */
     public static final int OVERLAY_CAPE = 0x0100;
 
-    private int renderOverlayFlags;
-
-    private final long[] clrTime = new long[32];
-    private final long[] meshTime = new long[32];
-    private int tidx = 0;
-    boolean rollOver = false;
-
-    private final EnumMap<BodyPart, Matrix4f> transforms = new EnumMap<>(BodyPart.class);
+    /**
+     * All overlay components
+     */
+    public static final int OVERLAY_ALL = OVERLAY_HAT | OVERLAY_TORSO | OVERLAY_LEFT_ARM | OVERLAY_RIGHT_ARM
+            | OVERLAY_LEFT_LEG | OVERLAY_RIGHT_LEG | OVERLAY_CAPE;
 
     private static final BodyPart[] MAIN_PARTS = new BodyPart[]{BodyPart.HEAD, BodyPart.TORSO, BodyPart.LEFT_ARM, BodyPart.RIGHT_ARM, BodyPart.LEFT_LEG, BodyPart.RIGHT_LEG};
     private static final BodyPart[] MAIN_PARTS_SLIM = new BodyPart[]{BodyPart.HEAD, BodyPart.TORSO, BodyPart.LEFT_ARM_SLIM, BodyPart.RIGHT_ARM_SLIM, BodyPart.LEFT_LEG, BodyPart.RIGHT_LEG};
@@ -51,43 +64,88 @@ class GraphicsPanel extends JPanel {
     private final BodyPart[] OVERLAY_PARTS = new BodyPart[]{BodyPart.HAT, BodyPart.TORSO_OVERLAY, BodyPart.LEFT_ARM_OVERLAY, BodyPart.RIGHT_ARM_OVERLAY, BodyPart.LEFT_LEG_OVERLAY, BodyPart.RIGHT_LEG_OVERLAY};
     private final BodyPart[] OVERLAY_PARTS_SLIM = new BodyPart[]{BodyPart.HAT, BodyPart.TORSO_OVERLAY, BodyPart.LEFT_ARM_OVERLAY_SLIM, BodyPart.RIGHT_ARM_OVERLAY_SLIM, BodyPart.LEFT_LEG_OVERLAY, BodyPart.RIGHT_LEG_OVERLAY};
 
+    private int renderOverlayFlags;
+
+    /**
+     * If true, the model is rendered with translucent support (like in 1.9+).
+     * Otherwise, model is rendered like 1.8 and earlier.
+     */
+    @Setter private boolean translucentModel;
+
+    private boolean normalModel;
+
+    private float walkAngle;
+    private float capeAngle;
+    private float worldRotY;
+    private float worldRotX;
+    private float headPitch;
+    private float worldScale;
+
+    private boolean transformAngleDirty;
+
+    private final EnumMap<BodyPart, Matrix4f> transforms = new EnumMap<>(BodyPart.class);
+
     private BodyPart[] overlayParts;
     private BodyPart[] overlayPartsSlim;
 
-    public GraphicsPanel() {
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                handleResize(getWidth(), getHeight());
-            }
-        });
+    private BodyPart[] renderPartsMain, renderPartsOverlay;
 
-        BufferedImage bi;
-        try (InputStream is = getClass().getResourceAsStream("/skinSlim.png")) {
-            bi = ImageIO.read(is);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private boolean capeEnabled;
 
-        BufferedImage capeBI;
-        try (InputStream is = getClass().getResourceAsStream("/cape.png")) {
-            capeBI = ImageIO.read(is);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private final EnumMap<BodyPart, Mesh<?>> meshes = new EnumMap<>(BodyPart.class);
 
-        if (bi.getHeight() == 32) {
-            bi = SkinUtil.convertToModernSkin(bi, null);
-        }
+    /**
+     * Creates a PlayerModel with default settings.
+     */
+    public PlayerModel(BufferedImage skinTexture, BufferedImage capeTexture) {
+        translucentModel = true;
+        normalModel = true;
 
-        Texture tex = new Texture(bi);
-        Texture capeTex = new Texture(capeBI);
+        walkAngle = 0.0f;
+        capeAngle = 0.0f;
+        worldRotY = 0.0f;
+        worldRotX = 0.0f;
+        headPitch = 0.0f;
+        worldScale = 0.75f;
+
+        Texture tex = new Texture(skinTexture);
 
         for (BodyPart part : BodyPart.values()) {
-            meshes.put(part, part.toBuilder(part != BodyPart.CAPE ? tex : capeTex, 0)
+            if (part == BodyPart.CAPE) continue;
+
+            meshes.put(part, part.toBuilder(tex, 0)
                     .attach(Mesh.AttachmentType.LIGHT_FACTOR, 1f)
                     .attach(Mesh.AttachmentType.LIGHT_VECTOR, new Vector4f(0, 0, 1, 0)).build());
         }
+
+        if (capeTexture == null) {
+            capeEnabled = false;
+        } else {
+            meshes.put(BodyPart.CAPE, BodyPart.CAPE.toBuilder(new Texture(capeTexture), 0)
+                    .attach(Mesh.AttachmentType.LIGHT_FACTOR, 1f)
+                    .attach(Mesh.AttachmentType.LIGHT_VECTOR, new Vector4f(0, 0, 1, 0)).build());
+        }
+
+        setRenderOverlayFlags(OVERLAY_ALL);
+    }
+
+    private void updateRenderParts() {
+        if (normalModel) {
+            renderPartsMain = MAIN_PARTS;
+            renderPartsOverlay = overlayParts;
+        } else {
+            renderPartsMain = MAIN_PARTS_SLIM;
+            renderPartsOverlay = overlayPartsSlim;
+        }
+    }
+
+    /**
+     * Sets whether the normal or slim (Alex) model is used.
+     * @param normal true if the normal model should be used, false otherwise
+     */
+    public void setNormalModel(boolean normal) {
+        this.normalModel = normal;
+        updateRenderParts();
     }
 
     private void updateOverlayParts() {
@@ -111,19 +169,101 @@ class GraphicsPanel extends JPanel {
                 ++idx;
             }
         }
-    }
 
+        updateRenderParts();
+    }
+    
+    /**
+     * Set which parts of the player's overlay are rendered.
+     * @param flags Bitmask of flags for which overlay parts to render.
+     * <p>Should be a bitwise OR of 0 or more of the following flags (or {@link PlayerModel#OVERLAY_ALL}):
+     * <ul>
+     *     <li>{@link PlayerModel#OVERLAY_HAT}</li>
+     *     <li>{@link PlayerModel#OVERLAY_TORSO}</li>
+     *     <li>{@link PlayerModel#OVERLAY_LEFT_ARM}</li>
+     *     <li>{@link PlayerModel#OVERLAY_RIGHT_ARM}</li>
+     *     <li>{@link PlayerModel#OVERLAY_LEFT_LEG}</li>
+     *     <li>{@link PlayerModel#OVERLAY_RIGHT_LEG}</li>
+     * </ul>
+     * </p>
+     */
     public void setRenderOverlayFlags(int flags) {
+        if (!capeEnabled) {
+            flags &= ~OVERLAY_CAPE;
+        }
+
         this.renderOverlayFlags = flags;
+
         updateOverlayParts();
     }
 
-    private void handleResize(int width, int height) {
-        framebuffer = new Framebuffer(width, height);
-        updateTransform();
+    /**
+     * Sets the walking animation angle. This controls the player's arms and legs.
+     * @param angle the angle in radians
+     * @see PlayerModel#updateTransforms()
+     */
+    public void setWalkAngle(float angle) {
+        this.walkAngle = angle;
+        transformAngleDirty = true;
     }
 
-    public void updateTransform() {
+    /**
+     * Sets the cape angle.
+     * @param angle the angle in radians
+     * @see PlayerModel#updateTransforms()
+     */
+    public void setCapeAngle(float angle) {
+        this.capeAngle = angle;
+        transformAngleDirty = true;
+    }
+
+    /**
+     * Sets the world rotation about the Y axis.
+     * @param angle the angle in radians
+     * @see PlayerModel#updateTransforms()
+     */
+    public void setWorldRotY(float angle) {
+        this.worldRotY = angle;
+        transformAngleDirty = true;
+    }
+
+    /**
+     * Sets the world rotation about the X axis.
+     * @param angle the angle in radians
+     * @see PlayerModel#updateTransforms()
+     */
+    public void setWorldRotX(float angle) {
+        this.worldRotX = angle;
+        transformAngleDirty = true;
+    }
+
+    /**
+     * Sets the player's head pitch.
+     * @param angle the angle in radians
+     * @see PlayerModel#updateTransforms()
+     */
+    public void setHeadPitch(float angle) {
+        this.headPitch = angle;
+        transformAngleDirty = true;
+    }
+
+    /**
+     * Sets the world scale.
+     * @param scale the world scale (default is 0.75)
+     * @see PlayerModel#updateTransforms()
+     */
+    public void setWorldScale(float scale) {
+        this.worldScale = scale;
+        transformAngleDirty = true;
+    }
+
+    /**
+     * Updates the transformation matrices that this model will be rendered with. This function should be called after
+     * modifying the angles, world rotation, or world scale. It is also called automatically when the next frame is rendered.
+     */
+    public void updateTransforms() {
+        if (!transformAngleDirty) return;
+
         transforms.put(BodyPart.HEAD, calculateTransform(BodyPart.HEAD, headPitch, 0));
         transforms.put(BodyPart.TORSO, calculateTransform(BodyPart.TORSO, 0, 0));
         transforms.put(BodyPart.LEFT_ARM, calculateTransform(BodyPart.LEFT_ARM, walkAngle, 0));
@@ -144,12 +284,14 @@ class GraphicsPanel extends JPanel {
 
         transforms.put(BodyPart.CAPE, calculateTransform(BodyPart.CAPE, capeAngle, 0));
 
+        Matrix4f worldTransform = Matrix4f.scale(worldScale).times(Matrix4f.rotateX(worldRotX)).times(Matrix4f.rotateY(worldRotY));
         for (BodyPart part : BodyPart.values()) {
-            transforms.put(part, Matrix4f.scale(0.75f).times(Matrix4f.rotateX(worldRotX)).times(Matrix4f.rotateY(worldRotY)).times(transforms.get(part)));
+            transforms.put(part, worldTransform.times(transforms.get(part)));
         }
+
+        transformAngleDirty = false;
     }
 
-    /* f1 and f2 control part-specific stuff (f1 is usually main rotation) */
     private Matrix4f calculateTransform(BodyPart part, float f1, float f2) {
         switch (part) {
             case HEAD:
@@ -183,93 +325,37 @@ class GraphicsPanel extends JPanel {
         }
     }
 
-    @Override
-    public void paintComponent(Graphics g) {
-        if (framebuffer == null) handleResize(getWidth(), getHeight());
+    public void render(Framebuffer fb) {
+        updateTransforms(); // no-op if the angles are not dirty
 
-        long start = System.nanoTime();
-
-        BodyPart[] main, overlay;
-        if (normalModel) {
-            main = MAIN_PARTS;
-            overlay = overlayParts;
-        } else {
-            main = MAIN_PARTS_SLIM;
-            overlay = overlayPartsSlim;
-        }
-
-        framebuffer.setBlendMode(BlendMode.DISABLE);
-        framebuffer.setCullBackFace(true);
-        framebuffer.clear(Framebuffer.FB_CLEAR_COLOR | Framebuffer.FB_CLEAR_DEPTH, 0xFF000000);
-
-        long t1 = System.nanoTime();
+        fb.setBlendMode(BlendMode.DISABLE);
+        fb.setCullBackFace(true);
 
         if ((renderOverlayFlags & OVERLAY_CAPE) != 0) {
-            framebuffer.setTransform(transforms.get(BodyPart.CAPE));
-            framebuffer.drawMesh(meshes.get(BodyPart.CAPE));
+            fb.setTransform(transforms.get(BodyPart.CAPE));
         }
 
-        framebuffer.setDepthMode(Framebuffer.FB_DEPTH_COMMIT | Framebuffer.FB_DEPTH_USE);
+        fb.setDepthMode(Framebuffer.FB_DEPTH_COMMIT | Framebuffer.FB_DEPTH_USE);
 
-        for (BodyPart part : main) {
-            framebuffer.setTransform(transforms.get(part));
-            framebuffer.drawMesh(meshes.get(part));
+        for (BodyPart part : renderPartsMain) {
+            fb.setTransform(transforms.get(part));
+            fb.drawMesh(meshes.get(part));
         }
 
         if (translucentModel) {
-            framebuffer.setDepthMode(Framebuffer.FB_DEPTH_USE | Framebuffer.FB_DEPTH_COMMIT_TRANSPARENT);
-            framebuffer.setBlendMode(BlendMode.BLEND_OVER);
-            framebuffer.setCullBackFace(false);
+            fb.setDepthMode(Framebuffer.FB_DEPTH_USE | Framebuffer.FB_DEPTH_COMMIT_TRANSPARENT);
+            fb.setBlendMode(BlendMode.BLEND_OVER);
+            fb.setCullBackFace(false);
         } else {
-            framebuffer.setBlendMode(BlendMode.BINARY);
+            fb.setBlendMode(BlendMode.BINARY);
         }
 
-        if (overlay != null) {
-            for (BodyPart part : overlay) {
-                framebuffer.setTransform(transforms.get(part));
-                framebuffer.drawMesh(meshes.get(part));
+        if (renderPartsOverlay != null) {
+            for (BodyPart part : renderPartsOverlay) {
+                fb.setTransform(transforms.get(part));
+                fb.drawMesh(meshes.get(part));
             }
         }
-
-        long t2 = System.nanoTime();
-
-        g.clearRect(0, 0, getWidth(), getHeight());
-        g.drawImage(framebuffer.getColor(), 0, 0, null);
-
-        g.setColor(Color.RED);
-
-        addTiming(t1 - start, t2 - t1);
-
-        int y = -2;
-        g.drawString(String.format("tot %.02fms", (t2 - start) / 1000000.), 10, y += 12);
-        g.drawString(String.format("clr %.02fms", (t1 - start) / 1000000.), 10, y += 12);
-        g.drawString(String.format("msh %.02fms", (t2 - t1) / 1000000.), 10, y += 12);
-        g.drawString(getAvgClr(), 10, y += 12);
-        g.drawString(String.format("%dx%d", framebuffer.getWidth(), framebuffer.getHeight()), 10, y += 12);
-    }
-
-    private void addTiming(long clr, long msh) {
-        clrTime[tidx] = clr;
-        meshTime[tidx] = msh;
-
-        if (++tidx >= 32) {
-            tidx = 0;
-            rollOver = true;
-        }
-    }
-
-    private String getAvgClr() {
-        int n = rollOver ? 32 : tidx;
-        if (n == 0) return "avg ???";
-
-        long sumClr = 0, sumMsh = 0;
-
-        for (int i = 0; i < n; ++i) {
-            sumClr += clrTime[i];
-            sumMsh += meshTime[i];
-        }
-
-        return String.format("avg %.02fms clr %.02fms msh", sumClr / (double)n / 1000000, sumMsh / (double)n / 1000000);
     }
 
     @RequiredArgsConstructor
@@ -416,7 +502,7 @@ class GraphicsPanel extends JPanel {
                             ibase + 20, ibase + 21, ibase + 22, ibase + 20, ibase + 22, ibase + 23);
         }
 
-        public Mesh.Builder toBuilder(Texture tex, int base) {
+        Mesh.Builder toBuilder(Texture tex, int base) {
             Mesh.Builder builder = new Mesh.Builder().texture(tex);
             addCuboid(builder, xMin, yMin, zMin, xMax, yMax, zMax, texBaseX, texBaseY, texSpanX, texSpanY, texSpanZ, tex.calcAspect(), base);
             return builder;

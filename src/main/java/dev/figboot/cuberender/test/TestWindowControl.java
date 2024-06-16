@@ -11,7 +11,7 @@ import java.awt.event.ActionEvent;
 import java.util.EnumMap;
 import java.util.Map;
 
-public class TestWindowControl extends JFrame {
+class TestWindowControl extends JFrame {
     private final GraphicsPanel graphicsPanel;
 
     private final JRadioButton radOverlayOpaque, radOverlayTranslucent;
