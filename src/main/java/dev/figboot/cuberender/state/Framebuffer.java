@@ -143,7 +143,7 @@ public class Framebuffer {
                 float z = b0 * vert0.z + b1 * vert1.z + b2 * vert2.z;
                 if ((depthMode & FB_DEPTH_USE) != 0 && z <= depth[y * width + x]) continue;
 
-                if ((depthMode & FB_DEPTH_COMMIT) != 0 && outColor.w > 0) {
+                if ((depthMode & FB_DEPTH_COMMIT) != 0) {
                     depth[y * width + x] = z;
                 }
 
