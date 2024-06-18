@@ -157,6 +157,7 @@ public class PlayerModel {
 
         if (nParts == 0) {
             overlayParts = overlayPartsSlim = new BodyPart[0];
+            updateRenderParts();
             return;
         }
 
