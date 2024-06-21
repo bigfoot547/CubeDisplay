@@ -285,8 +285,8 @@ public class PlayerModel {
         transforms.put(BodyPart.LEFT_ARM_SLIM, calculateTransform(BodyPart.LEFT_ARM_SLIM, walkAngle, 0));
         transforms.put(BodyPart.RIGHT_ARM, calculateTransform(BodyPart.RIGHT_ARM, -walkAngle, 0));
         transforms.put(BodyPart.RIGHT_ARM_SLIM, calculateTransform(BodyPart.RIGHT_ARM_SLIM, -walkAngle, 0));
-        transforms.put(BodyPart.LEFT_LEG, calculateTransform(BodyPart.LEFT_LEG, walkAngle, 0));
-        transforms.put(BodyPart.RIGHT_LEG, calculateTransform(BodyPart.RIGHT_LEG, -walkAngle, 0));
+        transforms.put(BodyPart.LEFT_LEG, calculateTransform(BodyPart.LEFT_LEG, -walkAngle, 0));
+        transforms.put(BodyPart.RIGHT_LEG, calculateTransform(BodyPart.RIGHT_LEG, walkAngle, 0));
 
         transforms.put(BodyPart.HAT, calculateTransform(BodyPart.HEAD, headPitch, 0));
         transforms.put(BodyPart.TORSO_OVERLAY, calculateTransform(BodyPart.TORSO_OVERLAY, 0, 0));
@@ -294,8 +294,8 @@ public class PlayerModel {
         transforms.put(BodyPart.LEFT_ARM_OVERLAY_SLIM, calculateTransform(BodyPart.LEFT_ARM_OVERLAY_SLIM, walkAngle, 0));
         transforms.put(BodyPart.RIGHT_ARM_OVERLAY, calculateTransform(BodyPart.RIGHT_ARM_OVERLAY, -walkAngle, 0));
         transforms.put(BodyPart.RIGHT_ARM_OVERLAY_SLIM, calculateTransform(BodyPart.RIGHT_ARM_OVERLAY_SLIM, -walkAngle, 0));
-        transforms.put(BodyPart.LEFT_LEG_OVERLAY, calculateTransform(BodyPart.LEFT_LEG_OVERLAY, walkAngle, 0));
-        transforms.put(BodyPart.RIGHT_LEG_OVERLAY, calculateTransform(BodyPart.RIGHT_LEG_OVERLAY, -walkAngle, 0));
+        transforms.put(BodyPart.LEFT_LEG_OVERLAY, calculateTransform(BodyPart.LEFT_LEG_OVERLAY, -walkAngle, 0));
+        transforms.put(BodyPart.RIGHT_LEG_OVERLAY, calculateTransform(BodyPart.RIGHT_LEG_OVERLAY, walkAngle, 0));
 
         transforms.put(BodyPart.CAPE, calculateTransform(BodyPart.CAPE, capeAngle, 0));
 
